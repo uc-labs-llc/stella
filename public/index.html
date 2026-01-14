@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stella Comeaux</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --accent: #AF5612;
+            --text-main: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex; justify-content: center; align-items: flex-start;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            width: 95%; max-width: 460px;
+            margin: 40px auto; text-align: center;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* CD Housing */
+        .art-box {
+            background: #111;
+            padding: 12px;
+            border-radius: 20px;
+            border: 2px solid #333;
+            z-index: 10;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            display: inline-block;
+            position: relative;
+        }
+
+        .cover-art { width: 260px; height: 260px; border-radius: 12px; display: block; }
+
+        .eject-button {
+            background: #000; color: var(--accent); border: 1px solid #444;
+            padding: 8px 18px; border-radius: 3px; font-family: 'Space Mono', monospace;
+            font-size: 0.65rem; margin-top: 15px; cursor: pointer;
+            transition: 0.3s; text-transform: uppercase; font-weight: bold;
+        }
+
+        .eject-button:hover { border-color: var(--accent); color: #fff; }
+
+        /* THE TRAY */
+        .cd-tray {
+            width: 260px;
+            background: linear-gradient(180deg, #111 0%, #050505 100%);
+            border: 1px solid #222; border-top: none;
+            border-radius: 0 0 30px 30px;
+            overflow: hidden;
+            max-height: 0; opacity: 0;
+            transition: max-height 4.0s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+            z-index: 5;
+        }
+
+        .cd-tray.is-ejected { max-height: 520px; opacity: 1; margin-bottom: 30px; padding: 25px 10px; }
+
+        /* THE PHYSICAL DISC */
+        .physical-disc {
+            width: 210px; height: 210px; margin: 0 auto 20px;
+            border-radius: 50%; position: relative;
+            background: radial-gradient(circle, #555 0%, #222 15%, #333 20%, #444 40%, #222 55%, #333 70%, #111 100%);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            box-sizing: border-box; overflow: hidden;
+        }
+
+        /* Spin Animation */
+        @keyframes disc-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(1080deg); } /* 3 full spins */
+        }
+
+        .spin-animation {
+            animation: disc-spin 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .disc-art-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('Stella-Final-Cover.png') no-repeat center;
+            background-size: cover; opacity: 0.20; z-index: 1;
+        }
+
+        .spindle {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 36px; height: 36px; background: #000; border-radius: 50%; border: 4px solid #333; z-index: 5;
+        }
+
+        /* Circular Text Style */
+        .disc-text-svg {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .disc-text-path {
+            fill: rgba(255, 255, 255, 0.85);
+            font-family: 'Space Mono', monospace;
+            font-size: 7.5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        /* Controls */
+        .controls-grid { display: flex; flex-direction: column; gap: 10px; padding: 0 15px; }
+        
+        .play-btn {
+            background: var(--accent); color: #fff; border: none; padding: 10px;
+            border-radius: 4px; font-family: 'Space Mono', monospace; font-size: 0.7rem;
+            cursor: pointer; text-transform: uppercase; font-weight: bold;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        .download-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+        .tray-button {
+            text-decoration: none; color: #888; font-size: 0.55rem;
+            text-transform: uppercase; font-weight: bold; padding: 8px 2px;
+            border: 1px solid #222; border-radius: 4px; transition: 0.3s;
+            background: transparent; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+        }
+        .tray-button:hover { color: var(--accent); border-color: var(--accent); }
+
+        .progress-container {
+            width: 100%; height: 4px; background: #222; margin-top: 5px;
+            border-radius: 2px; cursor: pointer; position: relative;
+        }
+        .progress-bar { height: 100%; background: var(--accent); width: 0%; border-radius: 2px; }
+
+        .tray-upc {
+            margin-top: 20px; font-family: 'Space Mono', monospace;
+            font-size: 0.6rem; letter-spacing: 2px; color: #FFED29; text-transform: uppercase;
+        }
+
+        h3 { font-size: 1.5rem; margin: 20px 0 0; font-weight: 700; }
+
+        .liner-notes {
+            width: 100%; margin-top: 15px; background: var(--glass);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border-radius: 24px; border: 1px solid var(--glass-border);
+            padding: 30px; text-align: left;
+        }
+
+        .liner-section-title { color: var(--accent); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 10px; display: block; }
+
+        .liner-story { font-size: 0.88rem; line-height: 1.6; opacity: 0.9; margin-bottom: 25px; }
+
+        .liner-details-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+            font-size: 0.82rem; border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 20px; margin-bottom: 25px;
+        }
+
+        .detail-item span { display: block; opacity: 0.5; font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; }
+
+        .liner-footer { text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
+
+        .footer-logo { width: 130px; opacity: 0.7; margin: 0 auto 15px; display: block; }
+
+        .copyright { font-size: 0.65rem; opacity: 0.5; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <div class="art-box">
+            <img src="Stella-Final-Cover.png" class="cover-art" alt="Stella Comeaux">
+            <button class="eject-button" id="ejectBtn">Open Player</button>
+        </div>
+
+        <div class="cd-tray" id="tray">
+            <div class="physical-disc" id="disc">
+                <div class="disc-art-overlay"></div>
+                
+                <svg class="disc-text-svg" viewBox="0 0 100 100">
+                    <path id="circlePath" d="M 50, 50 m -35, 0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0" fill="transparent" />
+                    <text class="disc-text-path">
+                        <textPath xlink:href="#circlePath" startOffset="50%" text-anchor="middle">
+                            Stella Comeaux  -- New Iberia, LA
+                        </textPath>
+                    </text>
+                </svg>
+
+                <div class="spindle"></div>
+            </div>
+            
+            <div class="controls-grid">
+                <audio id="audioTrack" src="session.mp3"></audio>
+                <audio id="openSound" src="cd.mp3"></audio>
+                
+                <button id="playPauseBtn" class="play-btn">
+                    <i class="fas fa-play"></i> Play
+                </button>
+
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+
+            </div>
+
+            <div class="tray-upc">Mom, I Love You!</div>
+        </div>
+
+        <h3>Stella Comeaux</h3>
+
+        <div class="liner-notes">
+            <span class="liner-section-title">Stella Comeaux - New Iberia, Louisiania</span>
+            <div class="liner-story">
+		    <p> This song is a testament to the enduring light of Stella Comeaux, my mother whose wealth was never measured in dollars, but in the boundless love she poured into her four children. From her roots in a hardworking Cajun family to the quiet strength she showed as a single mother, she moved through life with a "Grand Champion" spirit. Whether she was working long, painful hours to provide or patrolling the halls of her final home with a "guard on duty" smile, Stella remained a beacon of generosity and joy. This melody captures her journey from the dusty fields of her youth to the peaceful, paid-for home where so many memories were made, ensuring her legacy as a caregiver and best friend is never forgotten.
+		    </p><p>
+The music itself carries the rhythm of her heritage, blending the soulful, rolling piano of a New Orleans shuffle with the spirited cry of a Cajun fiddle. It is a celebration of the simple, beautiful moments—like a grandfather sharing a vegetable cut in two—and the deep, sincere hugs that defined Stella’s presence. Though the years have passed, this tribute serves as a bridge to the past, sending "lots of kisses" to the sky for a woman who was truly one of a kind. No one can take away the thoughts of her warm smile, and through these verses, the champion of the Bayou continues to wheel through our hearts with delight.</p>
+            </div>
+            <div class="liner-details-grid">
+                <div class="detail-item"><span>Artist</span>NOTB</div>
+                <div class="detail-item"><span>Origin</span>Texas</div>
+                <div class="detail-item"><span>Name</span>Cliff Larson</div>
+                <div class="detail-item"><span>Format</span>Single's</div>
+            </div>
+
+            <div class="liner-footer">
+                <img src="notb-logo.png" alt="NOTB Logo" class="footer-logo">
+                <div class="copyright">© 2026 NOTB • SOLO Artists using Technology</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const ejectBtn = document.getElementById('ejectBtn');
+        const tray = document.getElementById('tray');
+        const disc = document.getElementById('disc');
+        const audio = document.getElementById('audioTrack');
+        const openSound = document.getElementById('openSound');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+
+        // Toggle Tray with Sound and Spin
+        ejectBtn.addEventListener('click', () => {
+            const isOpening = !tray.classList.contains('is-ejected');
+            
+            if (isOpening) {
+                // Play opening sound
+                openSound.currentTime = 0;
+                openSound.play().catch(e => console.log("Audio play failed:", e));
+
+                // Reset and trigger spin animation
+                disc.classList.remove('spin-animation');
+                void disc.offsetWidth; // Trigger reflow
+                disc.classList.add('spin-animation');
+            }
+
+            const isEjected = tray.classList.toggle('is-ejected');
+            ejectBtn.innerText = isEjected ? "Close Player" : "Open Player";
+        });
+
+        // Play/Pause Logic
+        playPauseBtn.addEventListener('click', () => {
+            if (audio.paused) {
+                audio.play();
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+            } else {
+                audio.pause();
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+            }
+        });
+
+        // Update Progress Bar
+        audio.addEventListener('timeupdate', () => {
+            const progressPercent = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+        });
+
+        // Seek Audio
+        progressContainer.addEventListener('click', (e) => {
+            const width = progressContainer.clientWidth;
+            const clickX = e.offsetX;
+            audio.currentTime = (clickX / width) * audio.duration;
+        });
+
+        // Reset when song ends
+        audio.addEventListener('ended', () => {
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i> Play';
+            progressBar.style.width = '0%';
+        });
+    </script>
+
+</body>
+</html>
